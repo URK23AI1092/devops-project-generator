@@ -57,8 +57,8 @@ export function validateProjectConfig(config: Partial<ProjectConfig>): Validatio
     }
 
     if (typeof value === "string" && ALIAS_MAP[value]) {
-      value = ALIAS_MAP[value] as any;
-      (config as any)[step.field] = value;
+      value = ALIAS_MAP[value] as typeof value;
+      (config as unknown as Record<string, unknown>)[step.field] = value;
     }
 
     const options = getOptionsForStep(step.id);

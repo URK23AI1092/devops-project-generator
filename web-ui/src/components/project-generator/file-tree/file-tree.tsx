@@ -40,6 +40,8 @@ export function FileTree({ files, projectName }: FileTreeProps) {
           pathsToExpand.add(currentPath);
         }
       });
+      // Auto-expand matching folders; user can still collapse them afterwards
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedPaths(pathsToExpand);
     }
   }, [searchTerm, filteredFiles]);
