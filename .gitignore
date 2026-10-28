@@ -24,3 +24,5 @@ __pycache__/
 !.env.example
 dist/
 build/
+*.egg-info/
+generated/

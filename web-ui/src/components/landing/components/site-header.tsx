@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Rocket, Github } from "lucide-react";
 import { ThemeToggle } from "@/components";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-foreground bg-background/95 w-full max-w-full overflow-hidden">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 w-full">
-        <a href="/" className="flex items-center gap-2.5 sm:gap-3 transition-opacity hover:opacity-80 min-w-0 max-w-[200px] sm:max-w-none">
+        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 transition-opacity hover:opacity-80 min-w-0 max-w-[200px] sm:max-w-none">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-foreground text-background border border-foreground">
             <Rocket className="h-4 w-4" strokeWidth={1.5} />
           </div>
@@ -19,7 +20,7 @@ export function SiteHeader() {
               {APP_VERSION} · MANIFEST GENERATOR
             </span>
           </div>
-        </a>
+        </Link>
 
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-mono uppercase tracking-widest">
           <a

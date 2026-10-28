@@ -68,19 +68,9 @@ export function GitHubScaffoldDialog({
   const [copiedCli, setCopiedCli] = useState(false);
   const [cliMode, setCliMode] = useState<"gh" | "git">("gh");
 
-  // Load saved PAT
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(STORAGE_KEY_TOKEN);
-      if (saved) {
-        setPat(saved);
-        validateToken(saved);
-      }
-    }
-  }, []);
-
   useEffect(() => {
     if (projectName) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRepoName(projectName);
     }
   }, [projectName]);
@@ -105,6 +95,19 @@ export function GitHubScaffoldDialog({
       setValidationError(res.error || "Invalid token");
     }
   };
+
+  // Load saved PAT
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(STORAGE_KEY_TOKEN);
+      if (saved) {
+        // localStorage is only readable on the client, after mount
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPat(saved);
+        validateToken(saved);
+      }
+    }
+  }, []);
 
   const handlePatChange = (val: string) => {
     setPat(val);

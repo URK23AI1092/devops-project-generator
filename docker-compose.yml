@@ -1,0 +1,16 @@
+services:
+  web:
+    build: ./web-ui
+    image: devops-project-generator-web
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  # One-off CLI runs, e.g.:
+  #   docker compose run --rm cli init --no-interactive --name my-app
+  cli:
+    build: .
+    image: devops-project-generator-cli
+    volumes:
+      - ./generated:/work
+    profiles: ["cli"]
