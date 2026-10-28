@@ -1,0 +1,14 @@
+.git
+.github
+web-ui
+devops-project
+public
+venv
+.venv
+**/__pycache__
+**/*.py[cod]
+*.egg-info
+*.log
+.env*
+Dockerfile
+docker-compose.yml

@@ -84,3 +84,77 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+
+  docker:
+    name: Docker images
+    needs: [cli, web-ui]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      # Push only for commits on main; PRs just build and test
+      PUSH: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image names
+        run: |
+          # GHCR requires lowercase repository names
+          prefix="ghcr.io/${GITHUB_REPOSITORY,,}"
+          echo "WEB_IMAGE=$prefix-web" >> "$GITHUB_ENV"
+          echo "CLI_IMAGE=$prefix-cli" >> "$GITHUB_ENV"
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: web-ui
+          load: true
+          tags: ${{ env.WEB_IMAGE }}:latest,${{ env.WEB_IMAGE }}:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+      - name: Build CLI image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ${{ env.CLI_IMAGE }}:latest,${{ env.CLI_IMAGE }}:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=cli
+          cache-to: type=gha,mode=max,scope=cli
+
+      - name: Test web container
+        run: |
+          docker run -d --name web -p 3000:3000 "$WEB_IMAGE:latest"
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/api/health; then echo; break; fi
+            sleep 1
+          done
+          curl -fsS http://localhost:3000/api/health >/dev/null
+          curl -fsS -o /dev/null http://localhost:3000/
+          docker rm -f web
+
+      - name: Test CLI container
+        run: |
+          mkdir -p out && chmod 777 out
+          docker run --rm -v "$PWD/out:/work" "$CLI_IMAGE:latest" \
+            init --no-interactive --ci github-actions --name docker-smoke
+          docker run --rm -v "$PWD/out:/work" "$CLI_IMAGE:latest" validate docker-smoke
+          test -f out/docker-smoke/README.md
+
+      - name: Log in to GHCR
+        if: env.PUSH == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push images
+        if: env.PUSH == 'true'
+        run: |
+          docker push --all-tags "$WEB_IMAGE"
+          docker push --all-tags "$CLI_IMAGE"
